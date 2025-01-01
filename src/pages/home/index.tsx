@@ -6,6 +6,7 @@ import { Database } from "@/types/supabase";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { Seo } from "@/components/ui/seo";
 
 type Project = Database["public"]["Tables"]["projects"]["Row"];
 type SharedProject = Project & { role: string };
@@ -87,6 +88,11 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8">
+      <Seo
+        title="Ai Project Planner"
+        description="A simple project planner for AI projects"
+      />
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Projects</h1>

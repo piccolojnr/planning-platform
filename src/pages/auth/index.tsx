@@ -2,6 +2,7 @@ import { Navigate } from "react-router-dom";
 import { Brain, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/auth";
 import { AuthForm } from "./auth-form";
+import { Seo } from "@/components/ui/seo";
 
 export default function AuthPage() {
   const { user, loading } = useAuth();
@@ -18,6 +19,8 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
+      <Seo title="Sign in" />
+
       <div className="w-full max-w-sm space-y-8 p-8">
         <div className="flex flex-col items-center space-y-2">
           <Brain className="h-12 w-12" />

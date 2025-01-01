@@ -6,6 +6,7 @@ import HomePage from "@/pages/home";
 import ProjectPage from "@/pages/project";
 import AuthPage from "@/pages/auth";
 import { AuthProvider } from "@/contexts/auth";
+import NotFound from "./pages/not-found";
 
 function App() {
   return (
@@ -17,7 +18,9 @@ function App() {
             <Route element={<Layout />}>
               <Route path="/" element={<HomePage />} />
               <Route path="/project/:id" element={<ProjectPage />} />
+              <Route path="*" element={<NotFound />} />
             </Route>
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
       </Router>

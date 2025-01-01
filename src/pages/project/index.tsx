@@ -10,6 +10,7 @@ import { RequirementsList } from "./requirements/requirements-list";
 import { Separator } from "@/components/ui/separator";
 import { ChatInterface } from "./chat/chat-interface";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Seo } from "@/components/ui/seo";
 
 type Project = Database["public"]["Tables"]["projects"]["Row"];
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
@@ -120,6 +121,8 @@ export default function ProjectPage() {
 
   return (
     <div className="space-y-8 max-w-3xl mx-auto">
+      <Seo title={project.title} />
+
       <ProjectHeader project={project} loading={loadingProject} />
       <Tabs defaultValue="plan" value={tab}>
         <TabsList>

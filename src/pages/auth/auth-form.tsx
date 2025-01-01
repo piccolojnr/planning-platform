@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -10,10 +10,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/auth';
-import { toast } from 'sonner';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/auth";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -30,8 +30,8 @@ export function AuthForm() {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      email: "",
+      password: "",
     },
   });
 
@@ -40,13 +40,14 @@ export function AuthForm() {
       setIsLoading(true);
       if (isSignUp) {
         await signUp(data.email, data.password);
-        toast.success('Account created! Please sign in.');
+        toast.success("Account created! Please sign in.");
         setIsSignUp(false);
       } else {
         await signIn(data.email, data.password);
       }
     } catch (error) {
-      toast.error('Authentication failed. Please try again.');
+      console.error("Failed to authenticate:", error);
+      toast.error("Authentication failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -83,7 +84,7 @@ export function AuthForm() {
         />
         <div className="space-y-2">
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
+            {isLoading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
           </Button>
           <Button
             type="button"
@@ -92,7 +93,7 @@ export function AuthForm() {
             onClick={() => setIsSignUp(!isSignUp)}
             disabled={isLoading}
           >
-            {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+            {isSignUp ? "Already have an account?" : "Don't have an account?"}
           </Button>
         </div>
       </form>

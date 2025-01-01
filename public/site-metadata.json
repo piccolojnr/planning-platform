@@ -1,0 +1,11 @@
+{
+    "siteTitle": "Ai Project Planner",
+    "siteDescription": "A simple project planner for AI projects",
+    "author": "Piccolo",
+    "siteUrl": "https://planning-platform-two.vercel.app",
+    "siteImage": "/site-image.png",
+    "social": {
+        "instagram": "my-instagram",
+        "github": "my-github"
+    }
+}
