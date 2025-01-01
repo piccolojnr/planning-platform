@@ -162,7 +162,6 @@ export function ChatInterface({
         content: message.content,
       }));
       const { data, error } = await generateProjectPlan(conversation);
-      console.log(data, error);
       if (error) {
         console.error(error);
         setError("Failed to generate project plan. Please try again.");

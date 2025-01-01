@@ -1,5 +1,4 @@
-import axios from "axios";
-import { supabase, supabaseAnonKey } from "./supabase";
+import { supabase } from "./supabase";
 
 class Task {
     name: string;
@@ -33,13 +32,6 @@ export class ProjectPlan {
 
 
 
-const api = axios.create({
-    baseURL: "/functions/v1",
-    headers: {
-        'Authorization': `Bearer ${supabaseAnonKey}`,
-        'Content-Type': 'application/json',
-    }
-});
 
 interface Conversation {
     role: "assistant" | "user";
@@ -47,17 +39,11 @@ interface Conversation {
 }
 export const generateAIResponse = async (conversations: Conversation[]) => {
     try {
-        if (import.meta.env.VITE_USE_PROXY === "true") {
-            // Use proxy during development
-            const response = await api.post("/generate-ai-response", conversations);
-            return { data: response.data, error: null };
-        } else {
-            // Use Supabase function in production
-            const { data, error } = await supabase.functions.invoke("generate-ai-response", {
-                body: { conversations },
-            });
-            return { data, error };
-        }
+
+        const { data, error } = await supabase.functions.invoke("generate-ai-response", {
+            body: conversations,
+        });
+        return { data, error };
     } catch (error) {
         return { data: null, error };
     }
@@ -66,36 +52,21 @@ export const generateAIResponse = async (conversations: Conversation[]) => {
 // Generate Project Plan
 export const generateProjectPlan = async (conversations: Conversation[]) => {
     try {
-        if (import.meta.env.VITE_USE_PROXY === "true") {
-            // Use proxy during development
-            const response = await api.post("/generate-project-plan", conversations);
-            const { response: data, error } = response.data;
-            if (error) throw error;
 
-            const projectPlan = new ProjectPlan(
-                data.project_name,
-                data.project_description,
-                data.development_model,
-                data.tasks,
-                data.requirements
-            );
-            return { data: projectPlan, error: null };
-        } else {
-            // Use Supabase function in production
-            const { data, error } = await supabase.functions.invoke("generate-project-plan", {
-                body: { conversations },
-            });
-            if (error) throw error;
+        // Use Supabase function in production
+        const { data, error } = await supabase.functions.invoke("generate-project-plan", {
+            body: conversations,
+        });
+        if (error) throw error;
 
-            const projectPlan = new ProjectPlan(
-                data.project_name,
-                data.project_description,
-                data.development_model,
-                data.tasks,
-                data.requirements
-            );
-            return { data: projectPlan, error: null };
-        }
+        const projectPlan = new ProjectPlan(
+            data.project_name,
+            data.project_description,
+            data.development_model,
+            data.tasks,
+            data.requirements
+        );
+        return { data: projectPlan, error: null };
     } catch (error) {
         return { data: null, error };
     }
