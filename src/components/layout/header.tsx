@@ -14,11 +14,11 @@ export function Header() {
     <header className="border-b w-full px-4">
       <div className="flex h-16 items-center justify-between w-full">
         <Link to="/" className="flex items-center space-x-2">
-          <Brain className="h-6 w-6 text-emerald-300" />
+          <Brain className="h-6 w-6 text-emerald-300 dark:text-emerald-500" />
           <span className="text-lg font-bold">AI Project Planner</span>
         </Link>
         <Button variant="ghost" size="icon" onClick={handleSignOut}>
-          <LogOut className="h-5 w-5" />
+          <LogOut className="h-5 w-5 text-red-300 dark:text-red-500" />
         </Button>
       </div>
     </header>
