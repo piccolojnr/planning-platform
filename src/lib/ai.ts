@@ -20,13 +20,15 @@ export class ProjectPlan {
     development_model: string;
     tasks: Task[];
     requirements: string[];
+    overview: string;
 
-    constructor(project_name: string, project_description: string, development_model: string, tasks: Task[], requirements: string[]) {
+    constructor(project_name: string, project_description: string, development_model: string, tasks: Task[], requirements: string[], overview: string) {
         this.project_name = project_name;
         this.project_description = project_description;
         this.development_model = development_model;
         this.tasks = tasks;
         this.requirements = requirements;
+        this.overview = overview;
     }
 }
 
@@ -58,13 +60,16 @@ export const generateProjectPlan = async (conversations: Conversation[]) => {
             body: conversations,
         });
         if (error) throw error;
+        const { response } = data;
+
 
         const projectPlan = new ProjectPlan(
-            data.project_name,
-            data.project_description,
-            data.development_model,
-            data.tasks,
-            data.requirements
+            response.project_name,
+            response.project_description,
+            response.development_model,
+            response.tasks,
+            response.requirements,
+            response.overview
         );
         return { data: projectPlan, error: null };
     } catch (error) {

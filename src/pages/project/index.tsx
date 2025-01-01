@@ -17,7 +17,7 @@ type Task = Database["public"]["Tables"]["tasks"]["Row"];
 type ProjectWithRole = Project & { role?: string };
 
 export default function ProjectPage() {
-  const { id } = useParams<{ id: string }>();
+  const { projectId } = useParams<{ projectId: string }>();
   const [project, setProject] = useState<ProjectWithRole | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loadingTasks, setIsLoadingTasks] = useState(false);
@@ -33,7 +33,7 @@ export default function ProjectPage() {
         const { data: tasks, error } = await supabase
           .from("tasks")
           .select("*")
-          .eq("project_id", id)
+          .eq("project_id", projectId)
           .order("order");
 
         if (error) throw error;
@@ -52,7 +52,7 @@ export default function ProjectPage() {
         const { data: ownedProject, error: ownedError } = await supabase
           .from("projects")
           .select("*")
-          .eq("id", id)
+          .eq("id", projectId)
           .eq("user_id", user?.id)
           .single();
 
@@ -66,7 +66,7 @@ export default function ProjectPage() {
         const { data: sharedProject, error: sharedError } = await supabase
           .from("shared_projects")
           .select("project:projects(*), role")
-          .eq("project_id", id)
+          .eq("project_id", projectId)
           .eq("user_id", user?.id)
           .single();
 
@@ -87,7 +87,7 @@ export default function ProjectPage() {
       }
     }
 
-    if (id) {
+    if (projectId) {
       loadProject();
     }
     if (project) {
@@ -98,7 +98,7 @@ export default function ProjectPage() {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "tasks",
         },
@@ -113,7 +113,7 @@ export default function ProjectPage() {
       supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [projectId]);
 
   if (!project) {
     return null;

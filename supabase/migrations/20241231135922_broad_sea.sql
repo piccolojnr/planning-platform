@@ -33,16 +33,19 @@
     - Add policies for project owners and shared users
 */
 
+
 -- Create projects table
 CREATE TABLE IF NOT EXISTS projects (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title text NOT NULL,
   description text,
   model text NOT NULL DEFAULT 'agile',
+  overview text
   user_id uuid NOT NULL REFERENCES auth.users(id),
   created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
+  updated_at timestamptz DEFAULT now(),
 );
+
 
 -- Create tasks table
 CREATE TABLE IF NOT EXISTS tasks (
@@ -58,9 +61,6 @@ CREATE TABLE IF NOT EXISTS tasks (
   updated_at timestamptz DEFAULT now()
 );
 
-
-
-
 -- Create shared_projects table
 CREATE TABLE IF NOT EXISTS shared_projects (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -71,9 +71,8 @@ CREATE TABLE IF NOT EXISTS shared_projects (
   UNIQUE(project_id, user_id)
 );
 
-
 -- Create requirements table
-  create table public.requirements (
+CREATE TABLE public.requirements (
     id uuid default uuid_generate_v4() primary key,
     project_id uuid references public.projects(id) on delete cascade,
     content text not null,
@@ -82,7 +81,7 @@ CREATE TABLE IF NOT EXISTS shared_projects (
 );
 
 -- Create chat_messages table
-create table public.chat_messages (
+CREATE TABLE public.chat_messages (
     id uuid default uuid_generate_v4() primary key,
     project_id uuid references public.projects(id) on delete cascade,
     role text not null check (role in ('user', 'assistant')),
@@ -90,12 +89,35 @@ create table public.chat_messages (
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- Create subtasks table
+CREATE TABLE public.subtasks (
+    id uuid default uuid_generate_v4() primary key,
+    task_id uuid references public.tasks(id) on delete cascade,
+    title text not null,
+    description text,
+    status text not null default 'pending' check (status in ('pending', 'completed')),
+    "order" integer not null default 0,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Create task_requirements table
+CREATE TABLE public.task_requirements (
+    id uuid default uuid_generate_v4() primary key,
+    task_id uuid references public.tasks(id) on delete cascade,
+    content text not null,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- Enable RLS
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shared_projects ENABLE ROW LEVEL SECURITY;
-alter table public.requirements enable row level security;
-alter table public.chat_messages enable row level security;
+ALTER TABLE public.requirements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subtasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.task_requirements ENABLE ROW LEVEL SECURITY;
 
 -- Projects policies
 CREATE POLICY "Users can view own projects"
@@ -186,74 +208,220 @@ CREATE POLICY "Project owners can manage shares"
   );
 
 -- Requirements policies
-create policy "Users can view requirements for projects they own or are shared with"
-    on requirements for select
-    using (
-        project_id in (
-            select id from projects where user_id = auth.uid()
-            union
-            select project_id from shared_projects where user_id = auth.uid()
+CREATE POLICY "Users can view requirements for projects they own or are shared with"
+    ON requirements
+    FOR SELECT
+    USING (
+        project_id IN (
+            SELECT id FROM projects WHERE user_id = auth.uid()
+            UNION
+            SELECT project_id FROM shared_projects WHERE user_id = auth.uid()
         )
     );
 
-create policy "Users can insert requirements for projects they own or can edit"
-    on requirements for insert
-    with check (
-        project_id in (
-            select id from projects where user_id = auth.uid()
-            union
-            select project_id from shared_projects where user_id = auth.uid() and role = 'editor'
+CREATE POLICY "Users can insert requirements for projects they own or can edit"
+    ON requirements
+    FOR INSERT
+    WITH CHECK (
+        project_id IN (
+            SELECT id FROM projects WHERE user_id = auth.uid()
+            UNION
+            SELECT project_id FROM shared_projects WHERE user_id = auth.uid() AND role = 'editor'
         )
     );
 
-create policy "Users can update requirements for projects they own or can edit"
-    on requirements for update
-    using (
-        project_id in (
-            select id from projects where user_id = auth.uid()
-            union
-            select project_id from shared_projects where user_id = auth.uid() and role = 'editor'
+CREATE POLICY "Users can update requirements for projects they own or can edit"
+    ON requirements
+    FOR UPDATE
+    USING (
+        project_id IN (
+            SELECT id FROM projects WHERE user_id = auth.uid()
+            UNION
+            SELECT project_id FROM shared_projects WHERE user_id = auth.uid() AND role = 'editor'
         )
     );
 
-create policy "Users can delete requirements for projects they own or can edit"
-    on requirements for delete
-    using (
-        project_id in (
-            select id from projects where user_id = auth.uid()
-            union
-            select project_id from shared_projects where user_id = auth.uid() and role = 'editor'
+CREATE POLICY "Users can delete requirements for projects they own or can edit"
+    ON requirements
+    FOR DELETE
+    USING (
+        project_id IN (
+            SELECT id FROM projects WHERE user_id = auth.uid()
+            UNION
+            SELECT project_id FROM shared_projects WHERE user_id = auth.uid() AND role = 'editor'
         )
     );
 
 -- Chat messages policies
-create policy "Users can view chat messages for projects they own or are shared with"
-    on chat_messages for select
-    using (
-        project_id in (
-            select id from projects where user_id = auth.uid()
-            union
-            select project_id from shared_projects where user_id = auth.uid()
+CREATE POLICY "Users can view chat messages for projects they own or are shared with"
+    ON chat_messages
+    FOR SELECT
+    USING (
+        project_id IN (
+            SELECT id FROM projects WHERE user_id = auth.uid()
+            UNION
+            SELECT project_id FROM shared_projects WHERE user_id = auth.uid()
         )
     );
 
-create policy "Users can insert chat messages for projects they own or can edit"
-    on chat_messages for insert
-    with check (
-        project_id in (
-            select id from projects where user_id = auth.uid()
-            union
-            select project_id from shared_projects where user_id = auth.uid() and role = 'editor'
+CREATE POLICY "Users can insert chat messages for projects they own or can edit"
+    ON chat_messages
+    FOR INSERT
+    WITH CHECK (
+        project_id IN (
+            SELECT id FROM projects WHERE user_id = auth.uid()
+            UNION
+            SELECT project_id FROM shared_projects WHERE user_id = auth.uid() AND role = 'editor'
+        )
+    );
+CREATE POLICY "Users can delete chat messages for projects they own or can edit"
+ON chat_messages
+FOR DELETE
+USING (
+    project_id IN (
+        SELECT id FROM projects WHERE user_id = auth.uid()
+        UNION
+        SELECT project_id FROM shared_projects WHERE user_id = auth.uid() AND role = 'editor'
+    )
+);
+
+-- Subtasks policies
+CREATE POLICY "Users can view subtasks for projects they own or are shared with"
+    ON subtasks
+    FOR SELECT
+    USING (
+        task_id IN (
+            SELECT t.id FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            WHERE p.user_id = auth.uid()
+            UNION
+            SELECT t.id FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            JOIN shared_projects sp ON p.id = sp.project_id
+            WHERE sp.user_id = auth.uid()
         )
     );
 
+CREATE POLICY "Users can insert subtasks for projects they own or can edit"
+    ON subtasks
+    FOR INSERT
+    WITH CHECK (
+        task_id IN (
+            SELECT t.id FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            WHERE p.user_id = auth.uid()
+            UNION
+            SELECT t.id FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            JOIN shared_projects sp ON p.id = sp.project_id
+            WHERE sp.user_id = auth.uid() AND sp.role = 'editor'
+        )
+    );
+
+CREATE POLICY "Users can update subtasks for projects they own or can edit"
+    ON subtasks
+    FOR UPDATE
+    USING (
+        task_id IN (
+            SELECT t.id FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            WHERE p.user_id = auth.uid()
+            UNION
+            SELECT t.id FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            JOIN shared_projects sp ON p.id = sp.project_id
+            WHERE sp.user_id = auth.uid() AND sp.role = 'editor'
+        )
+    );
+
+CREATE POLICY "Users can delete subtasks for projects they own or can edit"
+    ON subtasks
+    FOR DELETE
+    USING (
+        task_id IN (
+            SELECT t.id FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            WHERE p.user_id = auth.uid()
+            UNION
+            SELECT t.id FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            JOIN shared_projects sp ON p.id = sp.project_id
+            WHERE sp.user_id = auth.uid() AND sp.role = 'editor'
+        )
+    );
+
+-- Task requirements policies
+CREATE POLICY "Users can view task requirements for projects they own or are shared with"
+    ON task_requirements
+    FOR SELECT
+    USING (
+        task_id IN (
+            SELECT t.id FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            WHERE p.user_id = auth.uid()
+            UNION
+            SELECT t.id FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            JOIN shared_projects sp ON p.id = sp.project_id
+            WHERE sp.user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can insert task requirements for projects they own or can edit"
+    ON task_requirements
+    FOR INSERT
+    WITH CHECK (
+        task_id IN (
+            SELECT t.id FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            WHERE p.user_id = auth.uid()
+            UNION
+            SELECT t.id FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            JOIN shared_projects sp ON p.id = sp.project_id
+            WHERE sp.user_id = auth.uid() AND sp.role = 'editor'
+        )
+    );
+
+CREATE POLICY "Users can update task requirements for projects they own or can edit"
+    ON task_requirements
+    FOR UPDATE
+    USING (
+        task_id IN (
+            SELECT t.id FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            WHERE p.user_id = auth.uid()
+            UNION
+            SELECT t.id FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            JOIN shared_projects sp ON p.id = sp.project_id
+            WHERE sp.user_id = auth.uid() AND sp.role = 'editor'
+        )
+    );
+
+CREATE POLICY "Users can delete task requirements for projects they own or can edit"
+    ON task_requirements
+    FOR DELETE
+    USING (
+        task_id IN (
+            SELECT t.id FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            WHERE p.user_id = auth.uid()
+            UNION
+            SELECT t.id FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            JOIN shared_projects sp ON p.id = sp.project_id
+            WHERE sp.user_id = auth.uid() AND sp.role = 'editor'
+        )
+    );
 
 CREATE OR REPLACE FUNCTION public.override_project_data(
   p_project_id UUID,
   p_name TEXT,
   p_description TEXT,
   p_tasks JSONB,
-  p_requirements JSONB
+  p_requirements JSONB,
+  p_overview TEXT
 )
 RETURNS VOID
 LANGUAGE plpgsql
@@ -264,7 +432,8 @@ BEGIN
     -- 1) Update the projects table
     UPDATE projects
     SET title = p_name,
-        description = p_description
+        description = p_description,
+        overview = p_overview
     WHERE id = p_project_id;
 
     -- 2) Delete tasks
@@ -290,6 +459,87 @@ BEGIN
   EXCEPTION
     WHEN OTHERS THEN
       RAISE NOTICE 'Error in override_project_data: %', SQLERRM;
+      ROLLBACK;  -- or re-raise
+  END;
+END;
+$$;
+
+
+-- function to reset conversation
+CREATE OR REPLACE FUNCTION public.reset_conversation(
+  p_project_id UUID
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Wrap everything in a transaction
+  BEGIN
+    -- 1) Delete chat messages
+    DELETE FROM chat_messages WHERE project_id = p_project_id;
+
+  EXCEPTION
+    WHEN OTHERS THEN
+      RAISE NOTICE 'Error in reset_conversation: %', SQLERRM;
+      ROLLBACK;  -- or re-raise
+  END;
+END;
+$$;
+
+
+-- delete last chat from assistant
+CREATE OR REPLACE FUNCTION public.delete_last_chat(
+  p_project_id UUID
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Wrap everything in a transaction
+  BEGIN
+    -- 1) Delete chat messages
+    WITH cte AS (
+      SELECT id
+      FROM chat_messages
+      WHERE project_id = p_project_id AND role = 'assistant'
+      ORDER BY created_at DESC
+      LIMIT 1
+    )
+    DELETE FROM chat_messages WHERE id IN (SELECT id FROM cte);
+
+  EXCEPTION
+    WHEN OTHERS THEN
+      RAISE NOTICE 'Error in delete_last_chat: %', SQLERRM;
+      ROLLBACK;  -- or re-raise
+  END;
+END;
+$$;
+
+
+-- override subtasks
+CREATE OR REPLACE FUNCTION public.override_subtasks(
+  p_task_id UUID,
+  p_subtasks JSONB
+)
+RETURNS VOID
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Wrap everything in a transaction
+  BEGIN
+    -- 1) Delete subtasks
+    DELETE FROM subtasks WHERE task_id = p_task_id;
+
+    -- 2) Insert subtasks
+    INSERT INTO subtasks (task_id, title, description)
+    SELECT p_task_id,
+           s->>'title',
+           s->>'description'
+    FROM jsonb_array_elements(p_subtasks) AS s;
+
+  EXCEPTION
+    WHEN OTHERS THEN
+      RAISE NOTICE 'Error in override_subtasks: %', SQLERRM;
       ROLLBACK;  -- or re-raise
   END;
 END;

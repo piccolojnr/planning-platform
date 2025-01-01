@@ -7,6 +7,7 @@ import ProjectPage from "@/pages/project";
 import AuthPage from "@/pages/auth";
 import { AuthProvider } from "@/contexts/auth";
 import NotFound from "./pages/not-found";
+import TaskPage from "./pages/project/tasks";
 
 function App() {
   return (
@@ -17,7 +18,11 @@ function App() {
             <Route path="/auth" element={<AuthPage />} />
             <Route element={<Layout />}>
               <Route path="/" element={<HomePage />} />
-              <Route path="/project/:id" element={<ProjectPage />} />
+              <Route path="/project/:projectId" element={<ProjectPage />} />
+              <Route
+                path="/project/:projectId/tasks/:taskId"
+                element={<TaskPage />}
+              />
               <Route path="*" element={<NotFound />} />
             </Route>
             <Route path="*" element={<NotFound />} />

@@ -8,6 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Database } from "@/types/supabase";
+import { Link } from "react-router-dom";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
 
@@ -68,8 +69,9 @@ export const TaskItem = forwardRef<HTMLDivElement, TaskItemProps>(
         {/* Text Content */}
         <div className="flex flex-col flex-1">
           {/* Title */}
-          <label
-            htmlFor={task.id}
+          <Link
+            to={`/project/${task.project_id}/tasks/${task.id}`}
+            // htmlFor={task.id}
             className={cn(
               "text-sm font-medium cursor-pointer",
               isCompleted && "line-through text-muted-foreground",
@@ -77,7 +79,7 @@ export const TaskItem = forwardRef<HTMLDivElement, TaskItemProps>(
             )}
           >
             {task.title}
-          </label>
+          </Link>
 
           {/* Description (optional, if you want to display it) */}
           {task.description && (

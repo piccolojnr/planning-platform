@@ -9,8 +9,8 @@ import { Database } from "@/types/supabase";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { CreateTaskDialog } from "./create-task-dialog";
-import { TaskItem } from "./task-item";
 import { Loader2 } from "lucide-react";
+import { TaskItem } from "./task-item";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
 
@@ -23,15 +23,15 @@ interface TaskListProps {
 
 export function TaskList({
   projectId,
-  tasks,
+  tasks: initialTasks,
   loading,
   canEdit,
 }: TaskListProps) {
-  const [items, setItems] = useState(tasks);
+  const [items, setItems] = useState(initialTasks);
 
   useEffect(() => {
-    setItems(tasks);
-  }, [tasks]);
+    setItems(initialTasks);
+  }, [initialTasks]);
 
   const onDragEnd = async (result: DropResult) => {
     if (!result.destination || !canEdit) return;

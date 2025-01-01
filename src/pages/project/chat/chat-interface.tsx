@@ -72,8 +72,7 @@ export function ChatInterface({
     }
   }
 
-  async function sendMessage(e: React.FormEvent) {
-    e.preventDefault();
+  async function sendMessage(input: string) {
     if (!input.trim() || !canEdit) return;
 
     setSending(true);
@@ -134,22 +133,14 @@ export function ChatInterface({
       const { error } = await supabase
         .from("chat_messages")
         .delete()
-        .eq("id", id);
-
+        .eq("id", id)
+        .eq("project_id", projectId);
       if (error) throw error;
 
       setMessages((prev) => prev.filter((m) => m.id !== id));
     } catch (error: any) {
       console.error(error);
       setError("Failed to delete message. Please try again.");
-    }
-  };
-
-  // delete last message
-  const handleDeleteLast = async () => {
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage) {
-      handleDelete(lastMessage.id);
     }
   };
 
@@ -188,12 +179,12 @@ export function ChatInterface({
         p_requirements: projectPlan.requirements.map((req) => ({
           content: req,
         })),
+        p_overview: projectPlan.overview,
       });
 
       if (error) {
         console.error("Failed to override project data:", error);
       } else {
-        await handleDeleteLast();
         setPhase(0);
         setProjectPlan(null);
         onFinished();
@@ -213,6 +204,51 @@ export function ChatInterface({
     // Possibly reset phase or do other logic
     setPhase(0);
   };
+
+  const handleResetConversation = async () => {
+    setSending(true);
+    try {
+      const { error } = await supabase.rpc("reset_conversation", {
+        p_project_id: projectId,
+      });
+
+      if (error) {
+        console.error("Failed to reset chat:", error);
+        setError("Failed to reset chat. Please try again.");
+      } else {
+        setMessages([]);
+        setProjectPlan(null);
+        setPhase(0);
+      }
+    } catch (error: any) {
+      console.error(error);
+      setError("Failed to reset chat. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleAddMoreFeatures = async () => {
+    // delete last chat from assistant and write a chat asking to add more features
+    setSending(true);
+    try {
+      await supabase.rpc("delete_last_chat", {
+        p_project_id: projectId,
+      });
+
+      await sendMessage("I would like to add more features to the project.");
+    } catch (error: any) {
+      console.error(error);
+      setError("Failed to add more features. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const isDone =
+    messages.length > 0 &&
+    messages[messages.length - 1].role === "assistant" &&
+    messages[messages.length - 1].content.includes("<GENERATE>");
 
   return (
     <div className="flex flex-col border rounded-lg h-[90vh]">
@@ -407,27 +443,53 @@ export function ChatInterface({
 
             <div className="h-16" />
           </div>
-          <form onSubmit={sendMessage} className="p-4 border-t">
-            <div className="flex gap-2">
-              <Input
-                placeholder={
-                  canEdit
-                    ? "Type your message..."
-                    : "You don't have permission to send messages"
-                }
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                disabled={!canEdit || sending}
-              />
-              <Button type="submit" disabled={!canEdit || sending}>
-                {sending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
+          {isDone ? (
+            <div className="flex justify-center gap-2 p-4 border-t">
+              {/* generate plan, reset conversation, add more features */}
+              <Button
+                onClick={handleResetConversation}
+                className="flex-shrink-0 mr-2 text-red-600"
+                disabled={sending}
+              >
+                Reset Conversation
+              </Button>
+              <Button
+                onClick={handleAddMoreFeatures}
+                className="flex-shrink-0 mr-2"
+                disabled={sending}
+              >
+                Add More Features
               </Button>
             </div>
-          </form>
+          ) : (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                sendMessage(input);
+              }}
+              className="p-4 border-t"
+            >
+              <div className="flex gap-2">
+                <Input
+                  placeholder={
+                    canEdit
+                      ? "Type your message..."
+                      : "You don't have permission to send messages"
+                  }
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  disabled={!canEdit || sending}
+                />
+                <Button type="submit" disabled={!canEdit || sending}>
+                  {sending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </form>
+          )}
         </>
       )}
     </div>

@@ -9,7 +9,7 @@ export default function Layout() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen animate-spin">
-        <Loader2 size={48} />
+        <Loader2 size={48} className="animate-spin" />
       </div>
     );
   }

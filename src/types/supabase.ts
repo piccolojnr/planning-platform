@@ -15,6 +15,7 @@ export interface Database {
           title: string
           description: string | null
           model: string
+          overview: string | null
           user_id: string
           created_at: string
           updated_at: string
@@ -24,6 +25,7 @@ export interface Database {
           title: string
           description?: string | null
           model?: string
+          overview?: string | null
           user_id: string
           created_at?: string
           updated_at?: string
@@ -33,6 +35,7 @@ export interface Database {
           title?: string
           description?: string | null
           model?: string
+          overview?: string | null
           user_id?: string
           created_at?: string
           updated_at?: string
@@ -72,6 +75,61 @@ export interface Database {
           dependencies?: string[]
           status?: string
           order?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      subtasks: {
+        Row: {
+          id: string
+          task_id: string
+          title: string
+          description: string | null
+          status: string
+          order: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          task_id: string
+          title: string
+          description?: string | null
+          status?: string
+          order?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          task_id?: string
+          title?: string
+          description?: string | null
+          status?: string
+          order?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      task_requirements: {
+        Row: {
+          id: string
+          task_id: string
+          content: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          task_id: string
+          content: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          task_id?: string
+          content?: string
           created_at?: string
           updated_at?: string
         }
