@@ -80,5 +80,4 @@ export default {
       },
     },
   },
-  plugins: [(await import("tailwindcss-animate")).default],
 };
