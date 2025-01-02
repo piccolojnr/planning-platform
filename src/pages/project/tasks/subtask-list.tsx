@@ -92,7 +92,6 @@ export function SubtaskList({ taskId, canEdit }: SubtaskListProps) {
             ? {
                 ...subtask,
                 status: completed ? "completed" : "pending",
-                order: completed ? prev.length : subtask.order,
               }
             : subtask
         )

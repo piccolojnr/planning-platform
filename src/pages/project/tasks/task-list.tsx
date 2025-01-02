@@ -79,7 +79,6 @@ export function TaskList({
             ? {
                 ...task,
                 status: completed ? "completed" : "pending",
-                order: completed ? prev.length : 0,
               }
             : task
         )

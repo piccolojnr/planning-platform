@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useLayoutEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Loader2, Send, AlertCircle, Trash } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/supabase";
@@ -8,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { generateAIResponse, ProjectPlan, generateProjectPlan } from "@/lib/ai";
 import ReactMarkdown from "react-markdown";
+import { Textarea } from "@/components/ui/textarea";
 
 type ChatMessage = Database["public"]["Tables"]["chat_messages"]["Row"];
 
@@ -469,8 +469,8 @@ export function ChatInterface({
               }}
               className="p-4 border-t"
             >
-              <div className="flex gap-2">
-                <Input
+              <div className="flex gap-2 items-center">
+                <Textarea
                   placeholder={
                     canEdit
                       ? "Type your message..."
