@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   DragDropContext,
   Draggable,
@@ -9,8 +9,9 @@ import { Database } from "@/types/supabase";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { CreateTaskDialog } from "./create-task-dialog";
-import { Loader2 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { TaskItem } from "./task-item";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
 
@@ -24,95 +25,118 @@ interface TaskListProps {
 export function TaskList({
   projectId,
   tasks: initialTasks,
-  loading,
   canEdit,
 }: TaskListProps) {
-  const [items, setItems] = useState(initialTasks);
+  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setItems(initialTasks);
+    setTasks(initialTasks);
   }, [initialTasks]);
 
-  const onDragEnd = async (result: DropResult) => {
-    if (!result.destination || !canEdit) return;
+  const updateTaskOrder = useCallback(
+    async (updatedTasks: Task[]) => {
+      const updates = updatedTasks.map((task, index) => ({
+        id: task.id,
+        title: task.title,
+        project_id: projectId,
+        order: index,
+      }));
 
-    const newItems = Array.from(items);
-    const [removed] = newItems.splice(result.source.index, 1);
-    newItems.splice(result.destination.index, 0, removed);
-
-    const updates = newItems.map((task, index) => ({
-      id: task.id,
-      title: task.title,
-      project_id: projectId,
-      order: index,
-    }));
-
-    try {
-      setItems(newItems);
-
-      const { error } = await supabase.from("tasks").upsert(updates, {
-        onConflict: "id",
-      });
-
-      if (error) throw error;
-      setItems(newItems);
-    } catch (error) {
-      console.error("Failed to update task order:", error);
-      toast.error("Failed to update task order");
-    }
-  };
-
-  const toggleStatus = async (taskId: string, completed: boolean) => {
-    if (!canEdit) return;
-
-    try {
       const { error } = await supabase
         .from("tasks")
-        .update({ status: completed ? "completed" : "pending" })
-        .eq("id", taskId);
+        .upsert(updates, { onConflict: "id" });
 
       if (error) throw error;
+    },
+    [projectId]
+  );
 
-      setItems((prev) =>
-        prev.map((task) =>
-          task.id === taskId
-            ? {
-                ...task,
-                status: completed ? "completed" : "pending",
-              }
-            : task
-        )
-      );
-    } catch (error) {
-      console.error("Failed to update task status:", error);
-      toast.error("Failed to update task status");
-    }
-  };
+  const handleDragEnd = useCallback(
+    async (result: DropResult) => {
+      if (!result.destination || !canEdit) return;
 
-  const tasksOrdered = items.sort((a, b) => a.order - b.order);
+      try {
+        setError(null);
+        const newTasks = Array.from(tasks);
+        const [removed] = newTasks.splice(result.source.index, 1);
+        newTasks.splice(result.destination.index, 0, removed);
+
+        setTasks(newTasks);
+        await updateTaskOrder(newTasks);
+      } catch (err) {
+        setError("Failed to update task order. Please try again.");
+        toast.error("Failed to update task order");
+        console.error("Task reorder error:", err);
+      }
+    },
+    [tasks, canEdit, updateTaskOrder]
+  );
+
+  const toggleTaskStatus = useCallback(
+    async (taskId: string, completed: boolean) => {
+      if (!canEdit) return;
+
+      try {
+        setError(null);
+        const { error } = await supabase
+          .from("tasks")
+          .update({ status: completed ? "completed" : "pending" })
+          .eq("id", taskId);
+
+        if (error) throw error;
+
+        setTasks((prevTasks) =>
+          prevTasks.map((task) =>
+            task.id === taskId
+              ? { ...task, status: completed ? "completed" : "pending" }
+              : task
+          )
+        );
+      } catch (err) {
+        setError("Failed to update task status. Please try again.");
+        toast.error("Failed to update task status");
+        console.error("Task status update error:", err);
+      }
+    },
+    [canEdit]
+  );
+
+  const sortedTasks = tasks.sort((a, b) => a.order - b.order);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Tasks</h2>
+        <h2 className="text-xl font-semibold tracking-tight">Tasks</h2>
         {canEdit && <CreateTaskDialog projectId={projectId} />}
       </div>
-      {loading ? (
-        <div className="flex items-center justify-center h-32">
-          <Loader2 size={48} className="animate-spin" />
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {tasks.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
+          <p>No tasks available</p>
+          {canEdit && (
+            <p className="text-sm mt-2">
+              Click the "Add Task" button to create your first task
+            </p>
+          )}
         </div>
-      ) : items.length === 0 ? (
-        <p className="text-muted-foreground">No tasks available</p>
       ) : (
-        <DragDropContext onDragEnd={onDragEnd}>
+        <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="tasks" isDropDisabled={!canEdit}>
             {(provided) => (
               <div
                 {...provided.droppableProps}
                 ref={provided.innerRef}
-                className="space-y-2"
+                className="space-y-3"
               >
-                {tasksOrdered.map((task, index) => (
+                {sortedTasks.map((task, index) => (
                   <Draggable
                     key={task.id}
                     draggableId={task.id}
@@ -122,7 +146,7 @@ export function TaskList({
                     {(provided, snapshot) => (
                       <TaskItem
                         task={task}
-                        onStatusChange={toggleStatus}
+                        onStatusChange={toggleTaskStatus}
                         dragHandleProps={provided.dragHandleProps as any}
                         draggableProps={provided.draggableProps}
                         ref={provided.innerRef}

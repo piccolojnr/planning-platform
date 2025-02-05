@@ -1,14 +1,15 @@
 import { forwardRef, Ref } from "react";
-import { GripVertical } from "lucide-react";
-import {
-  DraggableProvidedDragHandleProps,
-  DraggableProvidedDraggableProps,
-} from "@hello-pangea/dnd";
-
+import { GripVertical, Clock, Link as LinkIcon } from "lucide-react";
+import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Database } from "@/types/supabase";
 import { Link } from "react-router-dom";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
 
@@ -16,7 +17,7 @@ interface TaskItemProps {
   task: Task;
   onStatusChange: (id: string, completed: boolean) => void;
   dragHandleProps?: DraggableProvidedDragHandleProps;
-  draggableProps?: DraggableProvidedDraggableProps;
+  draggableProps?: any;
   isDragging?: boolean;
   canEdit: boolean;
 }
@@ -40,22 +41,32 @@ export const TaskItem = forwardRef<HTMLDivElement, TaskItemProps>(
         ref={ref}
         {...draggableProps}
         className={cn(
-          "group relative flex items-start gap-3 rounded-lg border border-border p-4 bg-card transition-shadow",
-          isDragging && "shadow-md opacity-70",
-          !canEdit && "cursor-default"
+          "group relative flex items-start gap-4 rounded-lg border p-4",
+          "bg-card transition-all duration-200 hover:shadow-sm",
+          isDragging && "shadow-lg opacity-90",
+          !canEdit && "cursor-default",
+          isCompleted && "bg-muted/50"
         )}
       >
-        {/* Drag handle (only visible when canEdit) */}
         {canEdit && (
-          <div
-            {...dragHandleProps}
-            className="absolute -left-3 top-1/2 -translate-y-1/2 cursor-grab rounded-full bg-muted p-1 shadow hover:bg-muted/90 transition-opacity hidden group-hover:block"
-          >
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div
+                {...dragHandleProps}
+                className={cn(
+                  "absolute -left-3 top-1/2 -translate-y-1/2",
+                  "cursor-grab rounded-full bg-muted p-1.5 shadow-sm",
+                  "opacity-0 transition-opacity group-hover:opacity-100",
+                  "hover:bg-muted/90 active:cursor-grabbing"
+                )}
+              >
+                <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>Drag to reorder</TooltipContent>
+          </Tooltip>
         )}
 
-        {/* Checkbox */}
         <Checkbox
           id={task.id}
           checked={isCompleted}
@@ -63,44 +74,61 @@ export const TaskItem = forwardRef<HTMLDivElement, TaskItemProps>(
             onStatusChange(task.id, checked as boolean)
           }
           disabled={!canEdit}
-          className="mt-[3px]"
+          className={cn(
+            "mt-1 transition-colors",
+            isCompleted && "text-muted-foreground"
+          )}
         />
 
-        {/* Text Content */}
-        <div className="flex flex-col flex-1">
-          {/* Title */}
+        <div className="flex-1 min-w-0">
           <Link
             to={`/project/${task.project_id}/tasks/${task.id}`}
-            // htmlFor={task.id}
             className={cn(
-              "text-sm font-medium cursor-pointer",
-              isCompleted && "line-through text-muted-foreground",
-              !canEdit && "cursor-default"
+              "block text-sm font-medium leading-none",
+              "hover:underline focus-visible:outline-none focus-visible:underline",
+              isCompleted && "text-muted-foreground line-through decoration-1",
+              !canEdit && "pointer-events-none"
             )}
           >
             {task.title}
           </Link>
 
-          {/* Description (optional, if you want to display it) */}
           {task.description && (
             <p
               className={cn(
-                "mt-1 text-xs text-muted-foreground",
-                isCompleted && "line-through"
+                "mt-2 text-sm text-muted-foreground line-clamp-2",
+                isCompleted && "line-through decoration-1"
               )}
             >
               {task.description}
             </p>
           )}
 
-          {/* Example of extra metadata (duration, dependencies) */}
-          <div className="mt-2 text-xs flex flex-wrap gap-2 text-muted-foreground">
-            <span className="rounded bg-muted px-2 py-0.5">
-              Duration: {task.duration} day{task.duration !== 1 ? "s" : ""}
-            </span>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {task.duration && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1.5",
+                  "rounded-full bg-muted px-2 py-0.5",
+                  "text-xs font-medium text-muted-foreground"
+                )}
+              >
+                <Clock className="h-3 w-3" />
+                {task.duration} day{task.duration !== 1 ? "s" : ""}
+              </span>
+            )}
+
             {task.dependencies && task.dependencies.length > 0 && (
-              <span className="rounded bg-muted px-2 py-0.5">
-                Depends on: {task.dependencies.join(", ")}
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1.5",
+                  "rounded-full bg-muted px-2 py-0.5",
+                  "text-xs font-medium text-muted-foreground"
+                )}
+              >
+                <LinkIcon className="h-3 w-3" />
+                {task.dependencies.length} dependenc
+                {task.dependencies.length === 1 ? "y" : "ies"}
               </span>
             )}
           </div>
