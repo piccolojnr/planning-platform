@@ -118,19 +118,20 @@ export const TaskItem = forwardRef<HTMLDivElement, TaskItemProps>(
               </span>
             )}
 
-            {task.dependencies && task.dependencies.length > 0 && (
-              <span
-                className={cn(
-                  "inline-flex items-center gap-1.5",
-                  "rounded-full bg-muted px-2 py-0.5",
-                  "text-xs font-medium text-muted-foreground"
-                )}
-              >
-                <LinkIcon className="h-3 w-3" />
-                {task.dependencies.length} dependenc
-                {task.dependencies.length === 1 ? "y" : "ies"}
-              </span>
-            )}
+            {Array.isArray(task.dependencies) &&
+              task.dependencies.length > 0 && (
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1.5",
+                    "rounded-full bg-muted px-2 py-0.5",
+                    "text-xs font-medium text-muted-foreground"
+                  )}
+                >
+                  <LinkIcon className="h-3 w-3" />
+                  {task.dependencies.length} dependenc
+                  {task.dependencies.length === 1 ? "y" : "ies"}
+                </span>
+              )}
           </div>
         </div>
       </div>

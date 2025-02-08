@@ -19,6 +19,7 @@ export default function HomePage() {
 
   useEffect(() => {
     async function loadProjects() {
+      if (!user) return;
       setLoading(true);
       try {
         // Load owned projects
@@ -84,7 +85,7 @@ export default function HomePage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [user]);
 
   return (
     <div className="space-y-8">

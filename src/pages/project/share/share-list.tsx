@@ -47,6 +47,7 @@ export function ShareList({ projectId }: ShareListProps) {
     return () => {
       channel.unsubscribe();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
   async function loadShares() {
@@ -60,7 +61,12 @@ export function ShareList({ projectId }: ShareListProps) {
       return;
     }
 
-    setShares(data || []);
+    setShares(
+      (data || []).map((share) => ({
+        ...share,
+        user: { email: share.user.email || "" },
+      }))
+    );
   }
 
   async function removeShare(id: string) {
@@ -75,6 +81,7 @@ export function ShareList({ projectId }: ShareListProps) {
       setShares((prev) => prev.filter((share) => share.id !== id));
       toast.success("Share removed");
     } catch (error) {
+      console.error("Failed to remove share", error);
       toast.error("Failed to remove share");
     }
   }

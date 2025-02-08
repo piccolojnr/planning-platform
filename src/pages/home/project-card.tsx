@@ -1,10 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { formatDistanceToNow } from 'date-fns';
-import { Link } from 'react-router-dom';
-import { Database } from '@/types/supabase';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { formatDistanceToNow } from "date-fns";
+import { Link } from "react-router-dom";
+import { Database } from "@/types/supabase";
 
-type Project = Database['public']['Tables']['projects']['Row'];
+type Project = Database["public"]["Tables"]["projects"]["Row"];
 
 interface ProjectCardProps {
   project: Project;
@@ -33,7 +33,9 @@ export function ProjectCard({ project, role }: ProjectCardProps) {
             {project.description}
           </p>
           <p className="text-xs text-muted-foreground mt-4">
-            Created {formatDistanceToNow(new Date(project.created_at))} ago
+            Created{" "}
+            {formatDistanceToNow(new Date(project.created_at || Date.now()))}{" "}
+            ago
           </p>
         </CardContent>
       </Card>

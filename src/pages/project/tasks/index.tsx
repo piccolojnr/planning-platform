@@ -47,7 +47,7 @@ export default function TaskPage() {
     data: Project | null;
     error: Error | null;
   }> {
-    if (!projectId) return { data: null, error: null };
+    if (!projectId || !user) return { data: null, error: null };
 
     try {
       const { data: ownedData, error } = await supabase
@@ -140,7 +140,7 @@ export default function TaskPage() {
           title: subtask.name,
           description: subtask.description,
         })),
-        p_task_id: taskId,
+        p_task_id: taskId!,
       });
 
       if (error) throw error;

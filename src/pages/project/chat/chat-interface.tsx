@@ -85,7 +85,7 @@ export function ChatInterface({
         scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
 
       const conversation = messages.map((message) => ({
-        role: message.role,
+        role: message.role as "user" | "assistant",
         content: message.content,
       }));
 
@@ -149,7 +149,7 @@ export function ChatInterface({
     setPhase(1);
     try {
       const conversation = messages.map((message) => ({
-        role: message.role,
+        role: message.role as "user" | "assistant",
         content: message.content,
       }));
       const { data, error } = await generateProjectPlan(conversation);
@@ -175,7 +175,7 @@ export function ChatInterface({
         p_project_id: projectId,
         p_name: projectPlan.project_name,
         p_description: projectPlan.project_description,
-        p_tasks: projectPlan.tasks, // pass as an array of objects
+        p_tasks: projectPlan.tasks.map((task) => ({ ...task })), // pass as an array of objects
         p_requirements: projectPlan.requirements.map((req) => ({
           content: req,
         })),

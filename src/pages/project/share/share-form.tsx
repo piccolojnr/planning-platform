@@ -38,7 +38,7 @@ export function ShareForm({ form, projectId }: ShareFormProps) {
         .eq("email", data.email)
         .single();
 
-      if (userError) throw new Error("User not found");
+      if (userError || !users || !users.id) throw new Error("User not found");
 
       // Share project
       const { error: shareError } = await supabase
