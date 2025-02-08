@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .bg-warning {
+    background-color: hsl(39, 100%, 50%); /* Yellow */
+  }
+  .text-warning-foreground {
+    color: hsl(0, 0%, 10%); /* Dark foreground for contrast */
+  }
+
+  .bg-success {
+    background-color: hsl(120, 60%, 50%); /* Green */
+  }
+  .text-success-foreground {
+    color: hsl(0, 0%, 100%); /* White foreground */
+  }
+}
+
 /* Default Theme */
 :root {
   --background: 0 0% 100%;
@@ -94,6 +110,16 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* New Component Classes for Warning and Success */
+@layer components {
+  .warning {
+    @apply border-transparent bg-warning text-warning-foreground;
+  }
+  .success {
+    @apply border-transparent bg-success text-success-foreground;
   }
 }
 

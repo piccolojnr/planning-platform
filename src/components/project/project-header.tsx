@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Database } from "@/types/supabase";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { ShareDialog } from "./share/share-dialog";
+import { ShareDialog } from "../../pages/project/share/share-dialog";
 import { Trash } from "lucide-react";
 
 type Project = Database["public"]["Tables"]["projects"]["Row"];
@@ -42,6 +42,7 @@ export function ProjectHeader({ project, loading }: ProjectHeaderProps) {
       toast.success("Project deleted");
       navigate("/");
     } catch (error) {
+      console.error("Failed to delete project", error);
       toast.error("Failed to delete project");
     }
   };

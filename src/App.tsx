@@ -5,6 +5,7 @@ import Layout from "@/components/layout";
 import HomePage from "@/pages/home";
 import ProjectPage from "@/pages/project";
 import AuthPage from "@/pages/auth";
+import FeedbackPage from "@/pages/feedback";
 import { AuthProvider } from "@/contexts/auth";
 import NotFound from "./pages/not-found";
 import TaskPage from "./pages/project/tasks";
@@ -23,6 +24,7 @@ function App() {
                 path="/project/:projectId/tasks/:taskId"
                 element={<TaskPage />}
               />
+              <Route path="/feedback" element={<FeedbackPage />} />
               <Route path="*" element={<NotFound />} />
             </Route>
             <Route path="*" element={<NotFound />} />

@@ -110,6 +110,28 @@ CREATE TABLE public.task_requirements (
     updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- Create feedback table
+CREATE TABLE public.feedback (
+    id uuid default uuid_generate_v4() primary key,
+    user_id uuid references auth.users(id),
+    type text not null check (type in ('bug', 'feature', 'improvement', 'other')),
+    title text not null,
+    description text not null,
+    status text not null default 'pending' check (status in ('pending', 'in_review', 'accepted', 'rejected', 'implemented')),
+    votes integer default 0,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Create feedback_votes table to track who voted
+CREATE TABLE public.feedback_votes (
+    id uuid default uuid_generate_v4() primary key,
+    feedback_id uuid references public.feedback(id) on delete cascade,
+    user_id uuid references auth.users(id),
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+    UNIQUE(feedback_id, user_id)
+);
+
 -- Enable RLS
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
@@ -118,6 +140,8 @@ ALTER TABLE public.requirements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.subtasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.task_requirements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.feedback_votes ENABLE ROW LEVEL SECURITY;
 
 -- Projects policies
 CREATE POLICY "Users can view own projects"
@@ -414,6 +438,82 @@ CREATE POLICY "Users can delete task requirements for projects they own or can e
             WHERE sp.user_id = auth.uid() AND sp.role = 'editor'
         )
     );
+
+-- Feedback policies
+CREATE POLICY "Users can view all feedback"
+    ON feedback
+    FOR SELECT
+    TO authenticated
+    USING (true);
+
+CREATE POLICY "Users can create feedback"
+    ON feedback
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own feedback"
+    ON feedback
+    FOR UPDATE
+    TO authenticated
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete their own feedback"
+    ON feedback
+    FOR DELETE
+    TO authenticated
+    USING (auth.uid() = user_id);
+
+-- Feedback votes policies
+CREATE POLICY "Users can view all feedback votes"
+    ON feedback_votes
+    FOR SELECT
+    TO authenticated
+    USING (true);
+
+CREATE POLICY "Users can vote once per feedback"
+    ON feedback_votes
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (
+        auth.uid() = user_id AND
+        NOT EXISTS (
+            SELECT 1 FROM feedback_votes
+            WHERE feedback_id = feedback_votes.feedback_id
+            AND user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can remove their votes"
+    ON feedback_votes
+    FOR DELETE
+    TO authenticated
+    USING (auth.uid() = user_id);
+
+-- Function to handle voting
+CREATE OR REPLACE FUNCTION handle_feedback_vote()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        -- Increment vote count
+        UPDATE feedback
+        SET votes = votes + 1
+        WHERE id = NEW.feedback_id;
+    ELSIF TG_OP = 'DELETE' THEN
+        -- Decrement vote count
+        UPDATE feedback
+        SET votes = votes - 1
+        WHERE id = OLD.feedback_id;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger for handling votes
+CREATE TRIGGER feedback_vote_trigger
+AFTER INSERT OR DELETE ON feedback_votes
+FOR EACH ROW
+EXECUTE FUNCTION handle_feedback_vote();
 
 CREATE OR REPLACE FUNCTION public.override_project_data(
   p_project_id UUID,

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { ProjectHeader } from "./project-header";
+import { ProjectHeader } from "../../components/project/project-header";
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/supabase";
 import { toast } from "sonner";
@@ -28,6 +28,7 @@ export default function ProjectPage() {
 
   useEffect(() => {
     async function loadTasks() {
+      if (!projectId) return;
       setIsLoadingTasks(true);
       try {
         const { data: tasks, error } = await supabase
@@ -46,6 +47,7 @@ export default function ProjectPage() {
       }
     }
     async function loadProject() {
+      if (!projectId || !user) return;
       setIsLoadingProject(true);
       try {
         // First try to load as owner
