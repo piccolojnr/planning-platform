@@ -11,11 +11,13 @@ export function Header() {
   }
 
   return (
-    <header className="border-b w-full px-4">
-      <div className="flex h-16 items-center justify-between w-full">
+    <header className="border-b w-full ">
+      <div className="flex h-16 items-center justify-between w-full px-4  max-w-5xl mx-auto">
         <Link to="/" className="flex items-center space-x-2">
           <Brain className="h-6 w-6 text-emerald-300 dark:text-emerald-500" />
-          <span className="text-lg font-bold">AI Project Planner</span>
+          <span className="text-lg font-bold hidden md:block">
+            AI Project Planner
+          </span>
         </Link>
         <div className="flex items-center gap-4">
           <Link to="/feedback">

@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { ChatInterface } from "./chat/chat-interface";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Seo } from "@/components/ui/seo";
+import { CompletionCheckDialog } from "@/components/project/completion-check-dialog";
 
 type Project = Database["public"]["Tables"]["projects"]["Row"];
 type Task = Database["public"]["Tables"]["tasks"]["Row"];
@@ -23,6 +24,8 @@ export default function ProjectPage() {
   const [loadingTasks, setIsLoadingTasks] = useState(false);
   const [loadingProject, setIsLoadingProject] = useState(true);
   const [tab, setTab] = useState("plan");
+  const [checkDialogOpen, setCheckDialogOpen] = useState(false);
+  const [incompleteTasks, setIncompleteTasks] = useState<any[]>([]);
 
   const { user } = useAuth();
 
@@ -117,6 +120,56 @@ export default function ProjectPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
 
+  async function checkCompletion() {
+    if (!projectId) return;
+
+    try {
+      // Get all tasks and their subtasks
+      const { data: tasksData, error: tasksError } = await supabase
+        .from("tasks")
+        .select(
+          `
+          id,
+          title,
+          status,
+          subtasks (
+            id,
+            title,
+            status
+          )
+        `
+        )
+        .eq("project_id", projectId);
+
+      if (tasksError) throw tasksError;
+
+      // Filter incomplete tasks and subtasks
+      const incomplete = tasksData
+        .filter((task) => {
+          const hasIncompleteSubtasks = task.subtasks.some(
+            (subtask: any) => subtask.status === "pending"
+          );
+          return task.status === "pending" || hasIncompleteSubtasks;
+        })
+        .map((task) => ({
+          taskId: task.id,
+          taskTitle: task.title,
+          subtasks: task.subtasks
+            .filter((subtask: any) => subtask.status === "pending")
+            .map((subtask: any) => ({
+              id: subtask.id,
+              title: subtask.title,
+            })),
+        }));
+
+      setIncompleteTasks(incomplete);
+      setCheckDialogOpen(true);
+    } catch (error) {
+      console.error("Failed to check completion:", error);
+      toast.error("Failed to check completion");
+    }
+  }
+
   if (!project) {
     return null;
   }
@@ -125,7 +178,14 @@ export default function ProjectPage() {
     <div className="space-y-8 max-w-3xl mx-auto">
       <Seo title={project.title} />
 
-      <ProjectHeader project={project} loading={loadingProject} />
+      <div className="flex items-center justify-between">
+        <ProjectHeader
+          project={project}
+          loading={loadingProject}
+          checkCompletion={checkCompletion}
+        />
+      </div>
+
       <Tabs defaultValue="plan" value={tab}>
         <TabsList>
           <TabsTrigger value="plan" onClick={() => setTab("plan")}>
@@ -159,6 +219,17 @@ export default function ProjectPage() {
           />
         </TabsContent>
       </Tabs>
+
+      <CompletionCheckDialog
+        open={checkDialogOpen}
+        onOpenChange={setCheckDialogOpen}
+        projectId={projectId!}
+        incompleteTasks={incompleteTasks}
+        onComplete={async () => {
+          toast.success("All items marked as complete");
+          setCheckDialogOpen(false);
+        }}
+      />
     </div>
   );
 }
