@@ -86,7 +86,7 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-muted/50">
+      <section className="py-20 bg-muted/50 rounded-lg">
         <div className="max-w-6xl mx-auto px-4 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-12">
             Everything You Need for Project Planning
@@ -151,27 +151,25 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-primary/10">
+      <section className="py-20 bg-primary/10 rounded-lg">
         <div className="max-w-3xl mx-auto text-center px-4 lg:px-8 trxt-primary-foreground">
           <h2 className="text-3xl font-bold mb-4">
             Ready to Transform Your Project Planning?
           </h2>
-          <p className="text-lg mb-8 text-primary-foreground/80">
+          <p className="text-lg mb-8 text-muted-foreground">
             Join thousands of teams using AI to plan and execute projects more
             efficiently.
           </p>
           {!user && (
-            <Button
-              asChild
+            <LinkButton
               size="lg"
               variant="secondary"
-              className="w-full md:w-auto"
+              className="w-full md:w-auto bg-black/60 text-white"
+              to="/signup"
             >
-              <Link to="/signup">
-                Start Planning Now
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-            </Button>
+              Start Planning Now
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </LinkButton>
           )}
         </div>
       </section>
