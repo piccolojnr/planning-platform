@@ -46,7 +46,7 @@ export function ProjectHeader({
       if (error) throw error;
 
       toast.success("Project deleted");
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Failed to delete project", error);
       toast.error("Failed to delete project");
@@ -60,7 +60,7 @@ export function ProjectHeader({
     <div className="flex items-center gap-4 w-full">
       <Link
         className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}
-        to="/"
+        to="/dashboard"
       >
         <ArrowLeft className="h-4 w-4" />
       </Link>

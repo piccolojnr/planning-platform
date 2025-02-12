@@ -107,7 +107,7 @@ export default function TaskPage() {
     } catch (error) {
       console.error("Failed to load task", error);
       toast.error("Failed to load task");
-      navigate(`/project/${projectId}`);
+      navigate(`/dashboard/project/${projectId}`);
     } finally {
       setLoading(false);
     }
@@ -173,7 +173,7 @@ export default function TaskPage() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate(`/project/${projectId}`)}
+          onClick={() => navigate(`/dashboard/project/${projectId}`)}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>

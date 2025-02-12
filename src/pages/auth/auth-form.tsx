@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/auth";
 import { toast } from "sonner";
+import { LinkButton } from "@/components/ui/link-button";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -22,9 +23,8 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-export function AuthForm() {
+export function AuthForm({ isSignUp = false }: { isSignUp?: boolean }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const { signIn, signUp } = useAuth();
 
   const form = useForm<FormData>({
@@ -41,7 +41,6 @@ export function AuthForm() {
       if (isSignUp) {
         await signUp(data.email, data.password);
         toast.success("Account created! Please sign in.");
-        setIsSignUp(false);
       } else {
         await signIn(data.email, data.password);
       }
@@ -86,15 +85,18 @@ export function AuthForm() {
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
           </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            className="w-full"
-            onClick={() => setIsSignUp(!isSignUp)}
-            disabled={isLoading}
-          >
+          <p className="text-xs text-right">
             {isSignUp ? "Already have an account?" : "Don't have an account?"}
-          </Button>
+            <LinkButton
+              type="button"
+              variant="link"
+              size="sm"
+              className="ml-1 p-0"
+              to={isSignUp ? "/signin" : "/signup"}
+            >
+              {isSignUp ? "Sign in" : "Sign up"}
+            </LinkButton>
+          </p>
         </div>
       </form>
     </Form>

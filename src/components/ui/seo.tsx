@@ -22,7 +22,7 @@ export function Seo({ title, description, image, article }: SeoProps) {
   };
 
   return (
-    <Helmet title={seo.title}>
+    <Helmet title={seo.title + " | " + siteTitle}>
       <meta name="description" content={seo.description} />
       <meta name="image" content={seo.image} />
 

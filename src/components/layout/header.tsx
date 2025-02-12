@@ -2,9 +2,10 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth";
 import { Brain, LogOut, MessageSquarePlus } from "lucide-react";
 import { Link } from "react-router-dom";
+import { LinkButton } from "../ui/link-button";
 
 export function Header() {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
 
   function handleSignOut() {
     signOut();
@@ -19,17 +20,31 @@ export function Header() {
             AI Project Planner
           </span>
         </Link>
-        <div className="flex items-center gap-4">
-          <Link to="/feedback">
-            <Button variant="ghost" size="sm">
+        <div className="flex items-center gap-4"></div>
+
+        {user ? (
+          <div className="flex items-center gap-4">
+            <LinkButton variant="ghost" size="sm" to="/dashboard">
+              Dashboard
+            </LinkButton>
+            <LinkButton variant="ghost" size="sm" to="/dashboard/feedback">
               <MessageSquarePlus className="h-5 w-5 mr-2" />
               Feedback
+            </LinkButton>
+            <Button variant="ghost" size="icon" onClick={handleSignOut}>
+              <LogOut className="h-5 w-5 text-red-300 dark:text-red-500" />
             </Button>
-          </Link>
-          <Button variant="ghost" size="icon" onClick={handleSignOut}>
-            <LogOut className="h-5 w-5 text-red-300 dark:text-red-500" />
-          </Button>
-        </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-4">
+            <LinkButton variant="ghost" size="sm" to="/auth">
+              Sign In
+            </LinkButton>
+            <LinkButton variant="ghost" size="sm" to="/auth">
+              Sign Up
+            </LinkButton>
+          </div>
+        )}
       </div>
     </header>
   );

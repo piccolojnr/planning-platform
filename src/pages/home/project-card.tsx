@@ -13,7 +13,7 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project, role }: ProjectCardProps) {
   return (
-    <Link to={`/project/${project.id}`}>
+    <Link to={`/dashboard/project/${project.id}`}>
       <Card className="hover:bg-muted/50 transition-colors">
         <CardHeader>
           <div className="flex items-center justify-between">

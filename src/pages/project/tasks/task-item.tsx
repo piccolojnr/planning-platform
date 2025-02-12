@@ -82,7 +82,7 @@ export const TaskItem = forwardRef<HTMLDivElement, TaskItemProps>(
 
         <div className="flex-1 min-w-0">
           <Link
-            to={`/project/${task.project_id}/tasks/${task.id}`}
+            to={`/dashboard/project/${task.project_id}/tasks/${task.id}`}
             className={cn(
               "block text-sm font-medium leading-none",
               "hover:underline focus-visible:outline-none focus-visible:underline",

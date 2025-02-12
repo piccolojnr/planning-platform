@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
       });
       if (error) throw error;
-      navigate("/");
+      navigate("/dashboard");
     } finally {
       setLoading(false);
     }
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         password,
       });
       if (error) throw error;
-      navigate("/");
+      navigate("/dashboard");
     } finally {
       setLoading(false);
     }
