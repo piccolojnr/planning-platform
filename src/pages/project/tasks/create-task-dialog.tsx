@@ -17,6 +17,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
 export const taskFormSchema = z.object({
+  id: z.string().optional(),
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   // duration in days string converted to number
@@ -82,7 +83,7 @@ export function CreateTaskDialog({ projectId }: CreateTaskDialogProps) {
           <DialogTitle>Create New Task</DialogTitle>
           <DialogDescription>Add a new task to your project.</DialogDescription>
         </DialogHeader>
-        <TaskForm form={form} onSubmit={onSubmit} />
+        <TaskForm projectId={projectId} form={form} onSubmit={onSubmit} />
       </DialogContent>
     </Dialog>
   );
