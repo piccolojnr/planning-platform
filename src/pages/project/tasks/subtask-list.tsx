@@ -5,7 +5,7 @@ import { Database } from "@/types/supabase";
 import { toast } from "sonner";
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 import { CreateSubTaskDialog } from "./create-subtask-dialog";
-import { SubTaskItem } from "./sub-task-item.";
+import { SubTaskItem } from "./sub-task-item";
 
 type Subtask = Database["public"]["Tables"]["subtasks"]["Row"];
 

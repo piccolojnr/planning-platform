@@ -123,7 +123,7 @@ export default function TaskPage() {
         {
           body: {
             taskTitle: task.title,
-            taskDescription: task.description,
+            taskDescription: task.description || prompt,
             projectOverview: project.overview,
             prompt,
           },
